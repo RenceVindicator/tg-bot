@@ -66,14 +66,14 @@ async def send_letter():
         "default": "Hi baby 💖 I’m always here."
     }
 
-    uid = load_uid()
+    uid  = load_uid()
     text = messages.get(mood, messages["default"])
 
-     if not uid:
+    if not uid:
         return "User ID not saved. Ask her to /start the bot."
 
-    # Block until Telegram replies
-    asyncio.run(bot.send_message(chat_id=uid, text=text))
+    # ⬇️  No extra loop juggling ― just await the API call
+    await bot.send_message(chat_id=uid, text=text)
     return "💌 Message sent!"
 
 # === Startup logic ===
