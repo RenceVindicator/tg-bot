@@ -58,10 +58,17 @@ def send_letter():
         "lost":   "Even when you feel lost, I’ll help you find your way 🧭",
         "default":"Hi baby 💖 I’m always here."
     }
+
     msg = messages.get(mood, messages["default"])
     uid = load_uid()
+
     if uid:
-        bot.send_message(chat_id=uid, text=msg)
+        async def send_async():
+            await tg_app.bot.send_message(chat_id=uid, text=msg)
+
+        # Run async task safely
+        tg_app.create_task(send_async())
+
         return "Message sent 💌"
     return "No user ID yet — ask her to /start the bot first."
 
