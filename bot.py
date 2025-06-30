@@ -1,37 +1,48 @@
-import os
-import json
-import threading
+import os, json, threading
 from flask import Flask, request
 import telegram
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-bot = telegram.Bot(token=BOT_TOKEN)
+# ---------- Configuration ----------
+BOT_TOKEN = os.getenv("BOT_TOKEN")            # set in Railway → Variables
+USER_FILE = "gf_id.json"                      # where we store her ID
+bot       = telegram.Bot(token=BOT_TOKEN)
 
-# File to store the user ID
-USER_FILE = "gf_id.json"
-
-# Save user ID to file
-def save_user_id(user_id):
+# ---------- Helpers ----------
+def save_user_id(uid: int):
     with open(USER_FILE, "w") as f:
-        json.dump({"gf_id": user_id}, f)
+        json.dump({"gf_id": uid}, f)
 
-# Load user ID from file
 def load_user_id():
     if not os.path.exists(USER_FILE):
         return None
-    with open(USER_FILE, "r") as f:
+    with open(USER_FILE) as f:
         return json.load(f).get("gf_id")
 
-# ----------- Flask App for Sending Letter -------------
-app = Flask(__name__)
+# ---------- Telegram part ----------
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    save_user_id(uid)
+    await update.message.reply_text(
+        "Hi love 💖 I'm ready to send you letters anytime!"
+    )
+    print(f"✅ Saved user ID: {uid}")
 
-@app.route('/sendletter')
+telegram_app = Application.builder().token(BOT_TOKEN).build()
+telegram_app.add_handler(CommandHandler("start", start))
+
+def run_telegram():
+    telegram_app.run_polling()
+
+# ---------- Flask part ----------
+flask_app = Flask(__name__)
+
+@flask_app.route("/sendletter")
 def send_letter():
     mood = request.args.get("mood", "default")
     mood_messages = {
-    "sad": "I'm here for you, love 😢💗",
+          "sad": "I'm here for you, love 😢💗",
     "happy": "You're glowing! Keep smiling 😄✨",
     "mad": "Take a deep breath, I’m here no matter what 😤❤️",
     "tired": "Rest, my love. You deserve it 💤",
@@ -41,28 +52,16 @@ def send_letter():
     "lost": "Even when you feel lost, I’ll help you find your way 🧭"
     "default": "Hi baby 💖 I’m always here."
     }
-    message = mood_messages.get(mood, mood_messages["default"])
+    msg  = mood_messages.get(mood, mood_messages["default"])
+    uid  = load_user_id()
+    if uid:
+        bot.send_message(chat_id=uid, text=msg)
+        return "Message sent 💌"
+    return "No user ID yet — ask her to /start the bot first."
 
-    gf_id = load_user_id()
-    if gf_id:
-        bot.send_message(chat_id=gf_id, text=message)
-        return "Message sent to your love 💌"
-    else:
-        return "No user ID saved yet. Ask her to send /start first."
-
-# ----------- Telegram Bot Part -------------
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    save_user_id(user_id)
-    await update.message.reply_text("Hi love 💖 I'm ready to send you letters anytime!")
-    print(f"✅ Saved user ID: {user_id}")
-
-def run_telegram_bot():
-    app_telegram = Application.builder().token(BOT_TOKEN).build()
-    app_telegram.add_handler(CommandHandler("start", start))
-    app_telegram.run_polling()
-
-# ----------- Main Entrypoint -------------
+# ---------- Main ----------
 if __name__ == "__main__":
-    threading.Thread(target=run_telegram_bot).start()
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    # 1️⃣ start Telegram bot in a background thread
+    threading.Thread(target=run_telegram, daemon=True).start()
+    # 2️⃣ run Flask web server (Railway will map PORT env var)
+    flask_app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
