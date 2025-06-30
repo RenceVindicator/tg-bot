@@ -1,67 +1,76 @@
-import os, json, threading
-from flask import Flask, request
-import telegram
-from telegram import Update
+import os, json, asyncio
+from flask import Flask, request, abort
+from telegram import Update, Bot
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-# ---------- Configuration ----------
-BOT_TOKEN = os.getenv("BOT_TOKEN")            # set in Railway → Variables
-USER_FILE = "gf_id.json"                      # where we store her ID
-bot       = telegram.Bot(token=BOT_TOKEN)
+# =========  ENV VARIABLES you need on Railway =============
+BOT_TOKEN      = os.getenv("BOT_TOKEN")                # already set
+APP_URL        = os.getenv("APP_URL")                  # e.g. https://ikang-production.up.railway.app
+WEBHOOK_PATH   = os.getenv("WEBHOOK_PATH", "telegram") # customise if you like
+USER_FILE      = "gf_id.json"                          # stores her chat‑id
+# =========================================================
 
-# ---------- Helpers ----------
-def save_user_id(uid: int):
+bot  = Bot(token=BOT_TOKEN)
+app  = Flask(__name__)                 # Flask instance
+tg   = Application.builder().token(BOT_TOKEN).build()  # Telegram Application
+
+# ---------- helper to store / load her chat‑id -------------
+def save_uid(uid: int):
     with open(USER_FILE, "w") as f:
         json.dump({"gf_id": uid}, f)
 
-def load_user_id():
+def load_uid():
     if not os.path.exists(USER_FILE):
         return None
     with open(USER_FILE) as f:
         return json.load(f).get("gf_id")
 
-# ---------- Telegram part ----------
+# ---------- Telegram  /start  ------------------------------
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
-    save_user_id(uid)
-    await update.message.reply_text(
-        "Hi love 💖 I'm ready to send you letters anytime!"
-    )
+    save_uid(uid)
+    await update.message.reply_text("Hi love 💖 I'm ready to send you letters anytime!")
     print(f"✅ Saved user ID: {uid}")
 
-telegram_app = Application.builder().token(BOT_TOKEN).build()
-telegram_app.add_handler(CommandHandler("start", start))
+tg.add_handler(CommandHandler("start", start))
 
-def run_telegram():
-    telegram_app.run_polling()
+# ---------- Webhook endpoint (Telegram -> Flask) ----------
+@app.post(f"/{WEBHOOK_PATH}")
+async def telegram_webhook():
+    if request.headers.get("content-type") != "application/json":
+        return abort(415)
+    update = Update.de_json(request.get_json(force=True), bot)
+    await tg.process_update(update)
+    return "OK"
 
-# ---------- Flask part ----------
-flask_app = Flask(__name__)
-
-@flask_app.route("/sendletter")
+# ---------- Your /sendletter route  -----------------------
+@app.get("/sendletter")
 def send_letter():
     mood = request.args.get("mood", "default")
-    mood_messages = {
-          "sad": "I'm here for you, love 😢💗",
-          "happy": "You're glowing! Keep smiling 😄✨",
-          "mad": "Take a deep breath, I’m here no matter what 😤❤️",
-          "tired": "Rest, my love. You deserve it 💤",
-          "stress": "I'm hugging you through the stress 🤗💆‍♀️",
-          "excited": "Yay! Tell me everything! 🎉💕",
-          "proud": "So proud of you 😭💖",
-          "lost": "Even when you feel lost, I’ll help you find your way 🧭",
-          "default": "Hi baby 💖 I’m always here."
+    messages = {
+        "sad":    "Hi love 😢 just wanted to say I’m here for you 💖",
+        "tired":  "Rest well, you deserve all the love in the world 💌",
+        "happy":  "You're glowing 🌟 and I love it!",
+        "mad":    "Whatever it is, I’m with you 😤❤️",
+        "stress": "I'm hugging you through the stress 🤗💆‍♀️",
+        "excited":"Yay! Tell me everything! 🎉💕",
+        "proud":  "So proud of you 😭💖",
+        "lost":   "Even when you feel lost, I’ll help you find your way 🧭",
+        "default":"Hi baby 💖 I’m always here."
     }
-    msg  = mood_messages.get(mood, mood_messages["default"])
-    uid  = load_user_id()
+    msg = messages.get(mood, messages["default"])
+    uid = load_uid()
     if uid:
         bot.send_message(chat_id=uid, text=msg)
         return "Message sent 💌"
-    return "No user ID yet — ask her to /start the bot first."
+    return "No user ID yet — ask her to /start first."
 
-# ---------- Main ----------
+# ---------- start‑up: set webhook then run Flask ----------
 if __name__ == "__main__":
-    # 1️⃣ start Telegram bot in a background thread
-    threading.Thread(target=run_telegram, daemon=True).start()
-    # 2️⃣ run Flask web server (Railway will map PORT env var)
-    flask_app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    # Tell Telegram where to send updates
+    webhook_url = f"{APP_URL.rstrip('/')}/{WEBHOOK_PATH}"
+    asyncio.run(bot.set_webhook(url=webhook_url))
+    print("📡 Webhook set to:", webhook_url)
+
+    # Run Flask (Railway maps PORT env var automatically)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
