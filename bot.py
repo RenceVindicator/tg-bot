@@ -71,10 +71,14 @@ def send_letter():
 
 # === Startup: Set Webhook ===
 async def setup():
-    await tg_app.initialize()
-    await bot.set_webhook(url=f"{APP_URL.rstrip('/')}/{WEBHOOK_PATH}")
-    print("📡 Webhook set!")
+    await tg_app.initialize()  # ✅ Must be first
+    webhook_url = f"{APP_URL.rstrip('/')}/{WEBHOOK_PATH}"
+    await bot.set_webhook(url= "tg-bot-production-7d95.up.railway.app")
+    print("📡 Webhook set to:", tg-bot-production-7d95.up.railway.app)
 
 if __name__ == "__main__":
+    # 🚀 Make sure Telegram is fully initialized before Flask starts
     asyncio.run(setup())
+
+    # ✅ Start the Flask app (after the bot is ready!)
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
