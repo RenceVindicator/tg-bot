@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Open‑When Letters</title>
+<style>
+/* -------- Base layout -------- */
+body{
+  font-family:Arial,Helvetica,sans-serif;
+   background: linear-gradient(to bottom, #ffffff, #ffd1dc, #ff69b4);
+  margin:0;
+  text-align:center;
+  padding:30px 15px;
+  transition:background .3s,color .3s;
+  border-left: 10px solid #8B004F;
+  border-right: 10px solid #8B004F;
+  box-sizing: border-box;
+ }
+@media (max-width: 480px) {
+  body::before,
+  body::after {
+    width: 6px;
+  }
+}
+h1{color:#d63384;font-size:1.8em;margin-bottom:30px}
+
+/* -------- Envelope cards -------- */
+.envelope{
+  width:100%;max-width:320px;height:130px;margin:0 auto 18px;
+  background:#ffc0cb;position:relative;border-radius:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,.15);
+  transition:transform .3s;cursor:pointer
+}
+.envelope:hover{transform:scale(1.03)}
+.flap{
+  position:absolute;top:0;left:0;width:100%;height:50%;
+  background:#ff69b4;clip-path:polygon(0 0,100% 0,50% 100%);z-index:2
+}
+.label{
+  position:absolute;top:60%;left:50%;transform:translate(-50%,-50%);
+  font-weight:bold;color:#fff;font-size:1.1em;z-index:3
+}
+.counter-card {
+  background: #fff0f5;
+  border: 2px solid #ff69b4;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 40px auto 20px;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.counter-card h3 {
+  color: #d63384;
+  margin-top: 0;
+  font-size: 1.3em;
+}
+
+.counter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 15px;
+  font-size: 1em;
+  color: #333;
+}
+
+.counter-grid div {
+  background: #ffe4f2;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-weight: bold;
+  box-shadow: inset 0 0 4px rgba(255, 105, 180, 0.2);
+}
+
+/* -------- Panels -------- */
+.panel{
+  display:none;background:#fff;border:2px dashed #d63384;border-radius:12px;
+  padding:20px;margin:10px auto 30px;max-width:600px;
+  box-shadow:0 6px 12px rgba(0,0,0,.1);text-align:left;
+  opacity:0;transform:translateY(10px);
+  transition:opacity .3s ease,transform .3s ease;position:relative;z-index:10
+}
+.panel.show{opacity:1;transform:translateY(0)}
+.panel h2{color:#d63384;margin-top:0}
+.close{
+  display:inline-block;margin-top:15px;background:#ff69b4;color:#fff;border:none;
+  padding:10px 18px;border-radius:8px;font-size:.95em;cursor:pointer;position:sticky;bottom:0
+}
+.close:hover{background:#c2185b}
+
+/* -------- Backdrop -------- */
+.backdrop{
+  position:fixed;inset:0;width:100vw;height:100vh;
+  backdrop-filter:blur(4px);background:rgba(0,0,0,.2);
+  z-index:5;display:none
+}
+
+/* -------- Dark‑mode toggle -------- */
+.dark-toggle{
+  position:absolute;top:20px;right:20px;
+  background:#d63384;color:#fff;border:none;
+  padding:10px 16px;border-radius:10px;font-size:.95em;cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:20
+}
+.dark-toggle:hover{background:#b81b6b}
+
+/* -------- Dark theme -------- */
+body.dark{background: linear-gradient(to bottom, #2c003e, #ff69b4);
+  color: white;}
+body.dark .panel{background:#2c2c2c;border-color:#ff69b4;color:#fff}
+body.dark .envelope{background:	#D11A7A}
+body.dark .flap{background:#FFB6C1}
+body.dark .label{color:#fff}
+
+body.dark .counter-card {
+  background-color: rgba(255, 255, 255, 0.3);
+backdrop-filter: blur(8px);
+  border-color: #ff69b4;
+}
+
+body.dark .counter-grid div {
+  background: #3c3c3c;
+  color: #fff;
+}
+</style>
+</head>
+<body>
+
+<button class="dark-toggle" onclick="toggleDarkMode()">🌓 Dark Mode</button>
+
+<div id="backdrop" class="backdrop"></div>
+
+<div id="counters" class="counter-card">
+  <h3>💌 Letters Opened</h3>
+  <p>Total: <span id="totalCount">0</span></p>
+  <div class="counter-grid">
+    <div>😢 Sad: <span id="count-sad">0</span></div>
+    <div>😊 Happy: <span id="count-happy">0</span></div>
+    <div>😠 Mad: <span id="count-mad">0</span></div>
+    <div>😴 Tired: <span id="count-tired">0</span></div>
+    <div>😣 Stress: <span id="count-stress">0</span></div>
+    <div>🤩 Excited: <span id="count-excited">0</span></div>
+    <div>🎖️ Proud: <span id="count-proud">0</span></div>
+    <div>🧭 Lost: <span id="count-lost">0</span></div>
+  </div>
+</div>
+
+<h1>💌 Open‑When Letters 💌</h1>
+
+<!-- 1 – Sad -->
+<div class="envelope" data-key="sad" onclick="openLetter(this)">
+  <div class="flap"></div><div class="label">Sad</div>
+</div>
+<div class="panel">
+  <h2>When You're Sad 😢</h2>
+  <p>Hello love,i know you are sad rn idk the reason but i'm always here for you love i know na kahit isa ako sa dahilan ng pagkasad mo e you are still fighting. It is just a part of our life mahal ko,
+     it is just a passing cloud. If ever man na super sad ka andito lang ako palagi po kahit anong problem kaharapin natin po andito po ako para damayan ka sa sadness na hinaharap mo. But if ayaw mo
+     pa po sabihin sakin na malungkot ka. You have this to make you feel better kahit papaano po. You have a part of me na makakaramay sayo kahit hindi ko pa po alam kung bakit ikaw sad. Mwa 💖</p>
+  <button class="close" onclick="closePanels()">Close</button>
+</div>
+
+<!-- 2 – Happy -->
+<div class="envelope" data-key="happy" onclick="openLetter(this)">
+  <div class="flap"></div><div class="label">Happy</div>
+</div>
+<div class="panel">
+  <h2>When You're Happy/Want to be Happy 😊</h2>
+  <p>Hello Loveeeeeee, i know right you are happyyy and i'm happyyyy because of you. alam kong super worth it ng reason mo kung bakit ka masaya ngayon and deserve mo yan love. Alam mo kung gaano ako kasaya
+     pag alam kong natutuwa ka. I love everything that makes you smile and happy kaya pag need mo palagi ng happy pill andito me to make you smile in everyway na makakaya ko kase your smile is my sunshine!
+     if ever hindi ka happy love lemme know ha? if ayaw mo naman po immag give you something that makes you smile or happy while wala pa ko or busy ako para you have me while i was away for a short time ha🎉</p>
+  <button class="close" onclick="closePanels()">Close</button>
+</div>
+
+<div class="envelope" data-key="mad" onclick="openLetter(this)">
+  <div class="flap"></div><div class="label">Mad</div>
+</div>
+<div class="panel">
+    <h2>When You're Mad 😠</h2>
+    <p>mahal ko i know i'm one of the reason kaya ka galit, sorry po love. You can always vent on me po i know nakakainis po ako and i don't want you to get mad po pero minsan hindi po talaga maiiwasan magkasamaan 
+       ng loob po. Even sa family naman po nagkakaroon ng pag aaway but i will always to choose you by my side po love. sorry and let me make bawi po and then let’s find calm together and make our love stronger each day ❤️</p>
+    <button class="close" onclick="closePanels()">Close</button>
+  </div>
+
+<div class="envelope" data-key="tired" onclick="openLetter(this)">
+  <div class="flap"></div><div class="label">Tired</div>
+</div>
+<div class="panel">
+    <h2>When You're Tired 😴</h2>
+    <p>Rest, my love. You worked hard today.pahinga na ikaw today im so proud of you mahal ko you did great today kaya ka po napagod and this time give enough time for yourself to rest love, i'll let you Curl under 
+       my blanket and stroke your hair, whispering how proud I am sayo sa pagiging strong mo sa araw na to. and i'll let you rest in my arms to have a well sleep and make enough rest for you hon 🌙</p>
+    <button class="close" onclick="closePanels()">Close</button>
+  </div>
+
+<div class="envelope" data-key="stress" onclick="openLetter(this)">
+  <div class="flap"></div><div class="label">Stress</div>
+</div>
+<div class="panel">
+    <h2>When You're Stressed 😣</h2>
+    <p>hello love, calm down and have a deep breaths in… out… Let the weight roll off your shoulders.alam kong kaya mo yan love, kahit super daming problem kaya mo po yan love take it slowly. Super hirap ng life po e ano love?
+       i know apaka hirap ng pinagdadaanan mo ngayon love pero alam ko na ginagawa mo ang best mo para malagpasan po iyan ha. Take a mini‑break, drink water, and remember tomorrow needs a healthy you. 💆‍♀️</p>
+    <button class="close" onclick="closePanels()">Close</button>
+  </div>
+
+<div class="envelope" data-key="excited" onclick="openLetter(this)">
+  <div class="flap"></div><div class="label">Excited</div>
+</div>
+<div class="panel">
+    <h2>When You're Excited 🤩</h2>
+    <p>Hello loveeeee, are you excited? omgggg kitang kita q sa muka mo na excited ikawwwwww.Like super ganda siguro ng chika mo mahal kooo, please ichika mo na sakin yan and make it one of the best chikahan of our day.
+       I want to see and hear you so excited of something so happy to have that feeling of you honeyyy i'm superrrrr willing to have a seat and Let’s bottle that energy for our next adventure honeyyyyy. ✨</p>
+    <button class="close" onclick="closePanels()">Close</button>
+  </div>
+
+<div class="envelope" data-key="proud" onclick="openLetter(this)">
+  <div class="flap"></div><div class="label">Proud</div>
+</div>
+<div class="panel">
+    <h2>When You're Proud 🎖️</h2>
+    <p>Hi loveeeee, Own that victory dance! right? ang galing mooooooo super proud ako sayo and syempre you feel proud of yourself din kaya make it sooo memorable sayo para din pag you need some push this would be one of your
+       reminder on how unstapable you are, and how capable you are of doing that love. Im so happy and super proud of you sa lahat ng gawin mo andito lang ako palagi for you honeyyyy 🙌</p>
+    <button class="close" onclick="closePanels()">Close</button>
+  </div>
+
+<div class="envelope" data-key="lost" onclick="openLetter(this)">
+  <div class="flap"></div><div class="label">Lost</div>
+</div>
+<div class="panel">
+    <h2>When You Feel Lost 🧭</h2>
+    <p> love i know ur not feeling great and might have feeling lost po. It’s okay not to have all the answers. please Hold my hand in your mind; we’ll get through this together. i will always be there for you to guide and be 
+        with you cause i know after this kakayanin mo. kaya mo palagi and mas kakayanin mo kase andito ako palagi sayoooooo. Your heart is the compass—trust it, and trust us. always look forward love. it will always gets better hon mwa 🗺️</p>
+    <button class="close" onclick="closePanels()">Close</button>
+  </div>
+
+<script>
+const defaultCounts = {
+    total : 0,
+    sad   : 0,
+    happy : 0,
+    mad   : 0,
+    tired : 0,
+    stress: 0,
+    excited: 0,
+    proud : 0,
+    lost  : 0
+  };
+ const counts = JSON.parse(localStorage.getItem('letterCounts')) || { ...defaultCounts };
+
+ function renderCounts () {
+    document.getElementById('totalCount').textContent = counts.total;
+    [
+      'sad','happy','mad','tired',
+      'stress','excited','proud','lost'
+    ].forEach(key => {
+      document.getElementById('count-' + key).textContent = counts[key];
+    });
+  }
+  renderCounts();   // call once on load
+
+  function updateCounters (letterKey) {
+    counts[letterKey]  = (counts[letterKey] || 0) + 1;
+    counts.total      += 1;
+    localStorage.setItem('letterCounts', JSON.stringify(counts));
+    renderCounts();
+  }
+
+function toggleDarkMode(){
+  document.body.classList.toggle('dark');
+}
+
+function closePanels(){
+  document.querySelectorAll('.panel').forEach(p=>{
+    p.style.display='none';
+    p.classList.remove('show');
+  });
+  document.getElementById('backdrop').style.display='none';
+}
+
+function openLetter(env){              // env is the element
+  closePanels();
+
+  const panel = env.nextElementSibling;
+  if (panel && panel.classList.contains('panel')) {
+    panel.style.display = 'block';
+    document.getElementById('backdrop').style.display = 'block';
+
+    updateCounters(env.dataset.key);   // ← pulls "sad", "happy", …
+
+    requestAnimationFrame(() => panel.classList.add('show'));
+    panel.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+}
+</script>
+</body>
+</html>
