@@ -43,14 +43,14 @@ def send_letter():
     mood = request.args.get("mood", "default")
     mood_messages = {
           "sad": "I'm here for you, love 😢💗",
-    "happy": "You're glowing! Keep smiling 😄✨",
-    "mad": "Take a deep breath, I’m here no matter what 😤❤️",
-    "tired": "Rest, my love. You deserve it 💤",
-    "stress": "I'm hugging you through the stress 🤗💆‍♀️",
-    "excited": "Yay! Tell me everything! 🎉💕",
-    "proud": "So proud of you 😭💖",
-    "lost": "Even when you feel lost, I’ll help you find your way 🧭"
-    "default": "Hi baby 💖 I’m always here."
+          "happy": "You're glowing! Keep smiling 😄✨",
+          "mad": "Take a deep breath, I’m here no matter what 😤❤️",
+          "tired": "Rest, my love. You deserve it 💤",
+          "stress": "I'm hugging you through the stress 🤗💆‍♀️",
+          "excited": "Yay! Tell me everything! 🎉💕",
+          "proud": "So proud of you 😭💖",
+          "lost": "Even when you feel lost, I’ll help you find your way 🧭",
+          "default": "Hi baby 💖 I’m always here."
     }
     msg  = mood_messages.get(mood, mood_messages["default"])
     uid  = load_user_id()
