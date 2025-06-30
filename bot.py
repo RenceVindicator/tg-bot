@@ -71,12 +71,13 @@ def send_letter():
         return "User ID not saved. Ask her to /start the bot."
 
 # === Startup logic ===
-async def setup():
-    await tg_app.initialize()  # ✅ Required
+def setup_webhook():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(tg_app.initialize())
     webhook_url = f"{APP_URL.rstrip('/')}/{WEBHOOK_PATH}"
-    await bot.set_webhook(url=webhook_url)
+    loop.run_until_complete(bot.set_webhook(url=webhook_url))
     print("📡 Webhook set to:", webhook_url)
 
 if __name__ == "__main__":
-    asyncio.run(setup())
+    setup_webhook()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
