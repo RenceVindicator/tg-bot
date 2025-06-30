@@ -52,6 +52,8 @@ def reset_user():
     return "⚠️ No ID was saved."
 @app.get("/sendletter")
 def send_letter():
+    import asyncio
+
     mood = request.args.get("mood", "default")
     messages = {
         "sad": "I'm here for you, love 😢💗",
