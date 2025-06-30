@@ -37,8 +37,8 @@ tg_app.add_handler(CommandHandler("start", start))
 app = Flask(__name__)
 
 # ✅ SYNC route — avoid Flask async crash
-@app.post(f"/{WEBHOOK_PATH}")
-def telegram_webhook():
+@app.post("/telegram")
+async def telegram_webhook():
     if request.headers.get("content-type") != "application/json":
         return abort(415)
 
