@@ -71,9 +71,9 @@ def send_letter():
 
 # === Startup: Set Webhook ===
 async def setup():
-    await tg_app.initialize()  # ✅ Must be first
+    await tg_app.initialize()
     webhook_url = f"{APP_URL.rstrip('/')}/{WEBHOOK_PATH}"
-    await bot.set_webhook(url= "https://tg-bot-production-7d95.up.railway.app")
+    await bot.set_webhook(url=webhook_url)
     print("📡 Webhook set to:", webhook_url)
 
 if __name__ == "__main__":
