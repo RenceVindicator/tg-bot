@@ -43,8 +43,9 @@ def telegram_webhook():
         return abort(415)
 
     update = Update.de_json(request.get_json(force=True), bot)
-    # Schedule processing on tg_app's internal event loop
-    tg_app.create_task(tg_app.process_update(update))
+
+    # ✅ FIX: Schedule update using global event loop
+    asyncio.get_event_loop().create_task(tg_app.process_update(update))
     return "OK"
 
 @app.get("/sendletter")
