@@ -7,14 +7,17 @@ TOKEN = os.getenv("BOT_TOKEN")   # Railway will inject this
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mood = context.args[0] if context.args else "default"
 
-    replies = {
-        "sad":    "Hey love 😢— sending you virtual hugs 💖",
-        "happy":  "Woo‑hoo! Your joy is my joy 😄",
-        "tired":  "Rest now, I’m proud of you 💤",
-        "lost":   "I’m right here with you 🧭",
-        "default":"Hi babe! I’m always a message away 💌"
-    }
-    await update.message.reply_text(replies.get(mood, replies["default"]))
+responses = {
+    "sad": "I'm here for you, love 😢💗",
+    "happy": "You're glowing! Keep smiling 😄✨",
+    "mad": "Take a deep breath, I’m here no matter what 😤❤️",
+    "tired": "Rest, my love. You deserve it 💤",
+    "stress": "I'm hugging you through the stress 🤗💆‍♀️",
+    "excited": "Yay! Tell me everything! 🎉💕",
+    "proud": "So proud of you 😭💖",
+    "lost": "Even when you feel lost, I’ll help you find your way 🧭"
+}
+    await update.message.reply_text(responses.get(mood, replies["default"]))
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
