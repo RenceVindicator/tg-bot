@@ -44,6 +44,12 @@ async def telegram_webhook():
     return "OK"
 
 # === Web route for sending a mood message ===
+@app.get("/reset")
+def reset_user():
+    if os.path.exists(USER_FILE):
+        os.remove(USER_FILE)
+        return "✅ User ID reset!"
+    return "⚠️ No ID was saved."
 @app.get("/sendletter")
 def send_letter():
     mood = request.args.get("mood", "default")
