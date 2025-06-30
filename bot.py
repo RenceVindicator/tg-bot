@@ -52,7 +52,6 @@ def reset_user():
     return "⚠️ No ID was saved."
 @app.get("/sendletter")
 async def send_letter():
-    import asyncio
 
     mood = request.args.get("mood", "default")
     messages = {
@@ -70,13 +69,12 @@ async def send_letter():
     uid = load_uid()
     text = messages.get(mood, messages["default"])
 
-    if uid:
-        async def run():
-            await tg_app.bot.send_message(chat_id=uid, text=text)
-        tg_app.create_task(run())
-        return "💌 Message sent!"
-    else:
+     if not uid:
         return "User ID not saved. Ask her to /start the bot."
+
+    # Block until Telegram replies
+    asyncio.run(bot.send_message(chat_id=uid, text=text))
+    return "💌 Message sent!"
 
 # === Startup logic ===
 def setup_webhook():
